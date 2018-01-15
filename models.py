@@ -13,7 +13,7 @@ class LeNet5(nn.Module):
         self.maxpool2 = nn.MaxPool2d(2)
         self.linear1 = nn.Linear(7*7*64, 200)
         self.relu3 = nn.ReLU(inplace=True)
-        self.linear2 = nn.Lienar(200, 10)
+        self.linear2 = nn.Linear(200, 10)
 
     def forward(self, x):
         out = self.maxpool1(self.relu1(self.conv1(x)))

@@ -6,6 +6,7 @@ from scipy.stats import truncnorm
 import torch
 import torch.nn as nn
 
+from adversarialbox.utils import to_var
 
 # --- White-box attacks ---
 
