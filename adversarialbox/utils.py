@@ -58,8 +58,37 @@ def test(model, loader):
         num_samples += preds.size(0)
 
     acc = float(num_correct)/float(num_samples)
-    print('Got %d/%d correct (%.2f%%)' % (num_correct, 
-        num_samples, 100 * acc))
+    print('Got %d/%d correct (%.2f%%) on the clean data' 
+        % (num_correct, num_samples, 100 * acc))
+
+    return acc
+
+
+def attack_over_test_data(model, adversary, param, loader_test):
+    """
+    Given target model computes accuracy on perturbed data
+    """
+    total_correct = 0
+
+    for t, (X, y) in enumerate(loader_test):
+        y_pred = pred_batch(X, model)
+
+        X_adv = []
+        for i in range(param['batch_size']):
+            X_i, y_i = X[i:i+1].numpy(), y_pred[i]
+
+            X_i_adv = adversary.perturb(X_i, y_i)
+            X_adv.append(X_i_adv[0])
+
+        X_adv = torch.from_numpy(np.array(X_adv))
+        y_pred_adv = pred_batch(X_adv, model)
+        
+        total_correct += (y_pred_adv == y.numpy()).sum()
+
+    acc = total_correct/len(loader_test)
+
+    print('Got %d/%d correct (%.2f%%) on the perturbed data' 
+        % (num_correct, num_samples, 100 * acc))
 
     return acc
 
