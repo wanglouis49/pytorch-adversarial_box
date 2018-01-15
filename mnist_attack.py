@@ -33,6 +33,7 @@ loader_test = torch.utils.data.DataLoader(test_dataset,
 
 # Setup model to be attacked
 net = LeNet5()
+net.load_state_dict(torch.load('adv_trained_lenet5.pkl'))
 
 if torch.cuda.is_available():
     print('CUDA ensabled.')
@@ -42,7 +43,6 @@ for p in net.parameters():
     p.requires_grad = False
 net.eval()
 
-net.load_state_dict(torch.load('adv_trained_lenet5.pkl'))
 test(net, loader_test)
 
 
