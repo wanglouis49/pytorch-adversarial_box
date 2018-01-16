@@ -1,5 +1,6 @@
 """
 PyTorch Implementation of Papernot's Black-Box Attack
+arXiv:1602.02697
 """
 
 import pickle
@@ -25,6 +26,7 @@ from models import LeNet5, SubstituteModel
 def MNIST_bbox_sub(param, loader_hold_out, loader_test):
     """
     Train a substitute model using Jacobian data augmentation
+    arXiv:1602.02697
     """
 
     # Setup the substitute
