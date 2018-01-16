@@ -14,7 +14,8 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from torch.utils.data.sampler import SubsetRandomSampler
 
-from adversarialbox.attacks import FGSMAttack, LinfPGDAttack
+from adversarialbox.attacks import FGSMAttack, LinfPGDAttack, \
+    jacobian_augmentation
 from adversarialbox.utils import to_var, pred_batch, test, \
     attack_over_test_data, batch_indices
 
@@ -46,11 +47,12 @@ def MNIST_bbox_sub(param, loader_hold_out, loader_test):
 
     # Setup training
     criterion = nn.CrossEntropyLoss()
-    # Adam may cause the problem
+    # Careful optimization is crucial to train a well-representative 
+    # substitute. In Tensorflow Adam has some problem:
     # (https://github.com/tensorflow/cleverhans/issues/183)
-    optimizer = torch.optim.RMSprop(net.parameters(), 
-        lr=param['learning_rate'])
-
+    # But it works fine here in PyTorch (you may try other optimization
+    # methods
+    optimizer = torch.optim.Adam(net.parameters(), lr=param['learning_rate'])
 
     # Data held out for initial training
     data_iter = iter(loader_hold_out)
@@ -95,7 +97,7 @@ def MNIST_bbox_sub(param, loader_hold_out, loader_test):
                 optimizer.step()
 
             print('loss = %.8f' % (loss.data[0]))
-        test(net, loader_test)
+        test(net, loader_test, blackbox=True, hold_out_size=param['hold_out_size'])
 
         # If we are not at last substitute training iteration, augment dataset
         if rho < param['data_aug'] - 1:
@@ -184,8 +186,10 @@ if __name__ == "__main__":
     # Setup adversarial attacks
     adversary = FGSMAttack(net, param['epsilon'])
 
-    test(net, loader_test)
+    print('For the substitute model:')
+    test(net, loader_test, blackbox=True, hold_out_size=param['hold_out_size'])
 
     # Setup oracle
-
+    print('For the oracle'+param['oracle_name'])
+    print('agaist blackbox FGSM attacks using gradients from the substitute:')
     attack_over_test_data(net, adversary, param, loader_test, oracle)

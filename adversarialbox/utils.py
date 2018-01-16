@@ -38,13 +38,16 @@ def pred_batch(x, model):
     return torch.from_numpy(y_pred)
 
 
-def test(model, loader):
+def test(model, loader, blackbox=False, hold_out_size=None):
     """
     Check model accuracy on model based on loader (train or test)
     """
     model.eval()
 
     num_correct, num_samples = 0, len(loader.dataset)
+
+    if blackbox:
+        num_samples -= hold_out_size
 
     for x, y in loader:
         x_var = to_var(x, volatile=True)
@@ -64,17 +67,23 @@ def attack_over_test_data(model, adversary, param, loader_test, oracle=None):
     Given target model computes accuracy on perturbed data
     """
     total_correct = 0
-    total_samples = len(loader_test,dataset)
+    total_samples = len(loader_test.dataset)
+
+    if oracle is not None:
+        total_samples -= param['hold_out_size']
 
     for t, (X, y) in enumerate(loader_test):
         y_pred = pred_batch(X, model)
 
         X_adv = []
         for i in range(param['test_batch_size']):
-            X_i, y_i = X[i:i+1].numpy(), y_pred[i]
-
-            X_i_adv = adversary.perturb(X_i, y_i)
-            X_adv.append(X_i_adv[0])
+            try:
+                X_i, y_i = X[i:i+1].numpy(), y_pred[i]
+            except:
+                break
+            else:
+                X_i_adv = adversary.perturb(X_i, y_i)
+                X_adv.append(X_i_adv[0])
 
         X_adv = torch.from_numpy(np.array(X_adv))
 
