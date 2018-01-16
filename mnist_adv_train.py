@@ -2,8 +2,6 @@
 Adversarially train LeNet-5
 """
 
-import sys
-
 import torch
 import torch.nn as nn
 import torchvision.datasets as datasets
@@ -84,4 +82,4 @@ for epoch in range(param['num_epochs']):
 
 test(net, loader_test)
 
-torch.save(net.state_dict(), 'adv_trained_lenet5.pkl')
+torch.save(net.state_dict(), 'models/adv_trained_lenet5.pkl')
