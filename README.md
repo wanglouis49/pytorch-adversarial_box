@@ -13,7 +13,7 @@ Luyu Wang and Gavin Ding, Borealis AI
 ## Examples
 1. MNIST with FGSM ([code](https://github.com/wanglouis49/pytorch-adversarial_box/blob/master/mnist_attack.py))
 2. Adversarial Training on MNIST ([code](https://github.com/wanglouis49/pytorch-adversarial_box/blob/master/mnist_adv_train.py))
-3. MNIST using a black-box attack (to do)
+3. MNIST using a black-box attack ([code](https://github.com/wanglouis49/pytorch-adversarial_box/blob/master/mnist_blackbox.py))
 
 ## List of supported attacks
 1. FGSM
