@@ -10,7 +10,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 
 from adversarialbox.attacks import FGSMAttack, LinfPGDAttack
-from adversarialbox.train import adv_train, FGSM_train_rnd
+from adversarialbox.train import adv_train
 from adversarialbox.utils import to_var, pred_batch, test
 
 from models import LeNet5

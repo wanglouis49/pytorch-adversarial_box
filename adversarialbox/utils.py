@@ -42,14 +42,9 @@ def test(model, loader):
     """
     Check model accuracy on model based on loader (train or test)
     """
-    if loader.dataset.train:
-        print('Checking accuracy on validation set')
-    else:
-        print('Checking accuracy on test set')
-
     model.eval()
-    num_correct = 0
-    num_samples = len(loader)
+
+    num_correct, num_samples = 0, len(loader.dataset)
 
     for x, y in loader:
         x_var = to_var(x, volatile=True)
@@ -64,12 +59,12 @@ def test(model, loader):
     return acc
 
 
-def attack_over_test_data(model, adversary, param, loader_test):
+def attack_over_test_data(model, adversary, param, loader_test, oracle=None):
     """
     Given target model computes accuracy on perturbed data
     """
     total_correct = 0
-    total_samples = len(loader_test)
+    total_samples = len(loader_test,dataset)
 
     for t, (X, y) in enumerate(loader_test):
         y_pred = pred_batch(X, model)
@@ -82,7 +77,11 @@ def attack_over_test_data(model, adversary, param, loader_test):
             X_adv.append(X_i_adv[0])
 
         X_adv = torch.from_numpy(np.array(X_adv))
-        y_pred_adv = pred_batch(X_adv, model)
+
+        if oracle is not None:
+            y_pred_adv = pred_batch(X_adv, oracle)
+        else:
+            y_pred_adv = pred_batch(X_adv, model)
         
         total_correct += (y_pred_adv.numpy() == y.numpy()).sum()
 
