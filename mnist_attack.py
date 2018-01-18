@@ -11,7 +11,7 @@ import torch.nn.functional as F
 
 from adversarialbox.attacks import FGSMAttack, LinfPGDAttack
 from adversarialbox.utils import to_var, pred_batch, test, \
-    attack_over_test_data
+    attack_over_test_data, attack_over_test_data_batch
 
 from models import LeNet5
 
@@ -19,7 +19,7 @@ from models import LeNet5
 # Hyper-parameters
 param = {
     'test_batch_size': 100,
-    'epsilon': 0.3,
+    'epsilon': 0.1,
 }
 
 
@@ -46,13 +46,13 @@ test(net, loader_test)
 
 
 # Adversarial attack
-adversary = FGSMAttack(net, param['epsilon'])
-#adversary = LinfPGDAttack(net)
+#adversary = FGSMAttack(net, param['epsilon'])
+adversary = LinfPGDAttack(net, random_start=False)
 
 t0 = time()
 attack_over_test_data(net, adversary, param, loader_test)
 print('{}s eclipsed.'.format(time()-t0))
 print('')
 t0 = time()
-attack_over_test_data(net, adversary, param, loader_test)
+attack_over_test_data_batch(net, adversary, param, loader_test)
 print('{}s eclipsed.'.format(time()-t0))

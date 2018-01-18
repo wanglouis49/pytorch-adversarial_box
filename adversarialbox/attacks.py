@@ -79,7 +79,7 @@ class LinfPGDAttack(object):
     def perturb(self, x_nat, y):
         """
         Given one example (x_nat, y), returns an adversarial
-        examples within epsilon of x_nat in l_infinity norm.
+        example within epsilon of x_nat in l_infinity norm.
         """
         if self.rand:
             x = x_nat + np.random.uniform(-self.epsilon, self.epsilon, 
@@ -102,6 +102,33 @@ class LinfPGDAttack(object):
             x = np.clip(x, 0, 1) # ensure valid pixel range
 
         return x
+
+    def perturb_batch(self, X_nat, y):
+        """
+        Given examples (X_nat, y), returns adversarial
+        examples within epsilon of X_nat in l_infinity norm.
+        """
+        if self.rand:
+            X = X_nat + np.random.uniform(-self.epsilon, self.epsilon,
+                X_nat.shape).astype('float32')
+        else:
+            X = np.copy(X_nat)
+
+        for i in range(self.k):
+            X_var = to_var(torch.from_numpy(X), requires_grad=True)
+            y_var = to_var(torch.LongTensor(y))
+
+            scores = self.model(X_var)
+            loss = self.loss_fn(scores, y_var)
+            loss.backward()
+            grad = X_var.grad.data.cpu().numpy()
+
+            X += self.a * np.sign(grad)
+
+            X = np.clip(X, X_nat - self.epsilon, X_nat + self.epsilon)
+            X = np.clip(X, 0, 1) # ensure valid pixel range
+
+        return X
 
 
 # --- Black-box attacks ---
