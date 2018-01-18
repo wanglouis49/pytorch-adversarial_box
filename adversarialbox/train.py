@@ -28,19 +28,11 @@ def adv_train(X, y, model, criterion, adversary):
         p.requires_grad = False
     model_cp.eval()
     
-    m = X.size()[0] # mini-batch size
-
     adversary.model = model_cp
 
-    X_adv = []
-    for i in range(m):
-        X_i, y_i = X[i:i+1].numpy(), y[i]
+    X_adv = adversary.perturb(X.numpy(), y)
 
-        X_i_adv = adversary.perturb(X_i, y_i)
-
-        X_adv.append(X_i_adv[0])
-
-    return torch.from_numpy(np.array(X_adv))
+    return torch.from_numpy(X_adv)
 
 
 def FGSM_train_rnd(X, y, model, criterion, fgsm_adversary, epsilon_max=0.3):
@@ -58,23 +50,15 @@ def FGSM_train_rnd(X, y, model, criterion, fgsm_adversary, epsilon_max=0.3):
         p.requires_grad = False
     model_cp.eval()
     
-    m = X.size()[0] # mini-batch size
-
     fgsm_adversary.model = model_cp
 
-    X_adv = []
-    for i in range(m):
-        X_i, y_i = X[i:i+1].numpy(), y[i]
+    # truncated Gaussian
+    m = X.size()[0] # mini-batch size
+    mean, std = 0., epsilon_max/2
+    epsilons = np.abs(truncated_normal(mean, std, m))
 
-        # truncated Gaussian
-        mean, std = 0., epsilon_max/2
-        epsilon = np.abs(truncated_normal(mean, std))
+    X_adv = adversary.perturb(X.numpy(), y, epsilons)
 
-        fgsm_adversary.epsilon = epsilon
-        X_i_adv = fgsm_adversary.perturb(X_i, y_i)
-
-        X_adv.append(X_i_adv[0])
-
-    return torch.from_numpy(np.array(X_adv))
+    return torch.from_numpy(X_adv)
 
 

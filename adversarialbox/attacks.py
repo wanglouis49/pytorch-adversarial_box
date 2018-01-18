@@ -19,31 +19,15 @@ class FGSMAttack(object):
         self.epsilon = epsilon
         self.loss_fn = nn.CrossEntropyLoss()
 
-    def perturb(self, x_nat, y):
-        """
-        Given one example (x_nat, y), returns its adversarial
-        counterpart with an attack length of epsilon.
-        """
-        x = np.copy(x_nat)
-
-        x_var = to_var(torch.from_numpy(x), requires_grad=True)
-        y_var = to_var(torch.LongTensor([int(y)]))
-
-        scores = self.model(x_var)
-        loss = self.loss_fn(scores, y_var)
-        loss.backward()
-        grad_sign = x_var.grad.data.cpu().sign().numpy()
-
-        x += self.epsilon * grad_sign
-        x = np.clip(x, 0, 1)
-
-        return x
-
-    def perturb_batch(self, X_nat, y):
+    def perturb(self, X_nat, y, epsilons=None):
         """
         Given examples (X_nat, y), returns their adversarial
         counterparts with an attack length of epsilon.
         """
+        # Providing epsilons in batch
+        if epsilon is not None:
+            self.epsilon = epsilons
+
         X = np.copy(X_nat)
 
         X_var = to_var(torch.from_numpy(X), requires_grad=True)
@@ -54,7 +38,8 @@ class FGSMAttack(object):
         loss.backward()
         grad_sign = X_var.grad.data.cpu().sign().numpy()
 
-        X += self.epsilon * grad_sign
+        import pdb; pdb.set_trace()
+        X += self.epsilon * grad_sign ###
         X = np.clip(X, 0, 1)
 
         return X
@@ -75,33 +60,6 @@ class LinfPGDAttack(object):
         self.a = a
         self.rand = random_start
         self.loss_fn = nn.CrossEntropyLoss()
-
-    def perturb(self, x_nat, y):
-        """
-        Given one example (x_nat, y), returns an adversarial
-        example within epsilon of x_nat in l_infinity norm.
-        """
-        if self.rand:
-            x = x_nat + np.random.uniform(-self.epsilon, self.epsilon, 
-                x_nat.shape).astype('float32')
-        else:
-            x = np.copy(x_nat)
-
-        for i in range(self.k):
-            x_var = to_var(torch.from_numpy(x), requires_grad=True)
-            y_var = to_var(torch.LongTensor([y]))
-
-            scores = self.model(x_var)
-            loss = self.loss_fn(scores, y_var)
-            loss.backward()
-            grad = x_var.grad.data.cpu().numpy()
-
-            x += self.a * np.sign(grad)
-
-            x = np.clip(x, x_nat - self.epsilon, x_nat + self.epsilon)
-            x = np.clip(x, 0, 1) # ensure valid pixel range
-
-        return x
 
     def perturb_batch(self, X_nat, y):
         """

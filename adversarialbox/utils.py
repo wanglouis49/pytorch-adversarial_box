@@ -5,18 +5,25 @@ import torch.nn as nn
 from torch.utils.data import sampler
 
 
-def truncated_normal(mean=0.0, stddev=1.0):
+def truncated_normal(mean=0.0, stddev=1.0, m=1):
     '''
     The generated values follow a normal distribution with specified 
     mean and standard deviation, except that values whose magnitude is 
     more than 2 standard deviations from the mean are dropped and 
-    re-picked
+    re-picked. Returns a vector of length m
     '''
-    while True:
-        sample = np.random.normal(mean, stddev)
-        if np.abs(sample) <= 2 * stddev:
-            break
-    return sample
+    samples = []
+    for i in range(m):
+        while True:
+            sample = np.random.normal(mean, stddev)
+            if np.abs(sample) <= 2 * stddev:
+                break
+        samples.append(sample)
+    assert len(samples) == m, "something wrong"
+    if m == 1:
+        return samples[0]
+    else:
+        return np.array(samples)
 
 
 # --- PyTorch helpers ---
@@ -69,54 +76,13 @@ def attack_over_test_data(model, adversary, param, loader_test, oracle=None):
     total_correct = 0
     total_samples = len(loader_test.dataset)
 
-    if oracle is not None:
-        total_samples -= param['hold_out_size']
-
-    for t, (X, y) in enumerate(loader_test):
-        y_pred = pred_batch(X, model)
-
-        X_adv = []
-        for i in range(param['test_batch_size']):
-            try:
-                X_i, y_i = X[i:i+1].numpy(), y_pred[i]
-            except:
-                break
-            else:
-                X_i_adv = adversary.perturb(X_i, y_i)
-                X_adv.append(X_i_adv[0])
-
-        X_adv = torch.from_numpy(np.array(X_adv))
-
-        if oracle is not None:
-            y_pred_adv = pred_batch(X_adv, oracle)
-        else:
-            y_pred_adv = pred_batch(X_adv, model)
-        
-        total_correct += (y_pred_adv.numpy() == y.numpy()).sum()
-
-    acc = total_correct/total_samples
-
-    print('Got %d/%d correct (%.4f%%) on the perturbed data' 
-        % (total_correct, total_samples, 100 * acc))
-
-    return acc
-
-
-def attack_over_test_data_batch(model, adversary, param, loader_test, 
-    oracle=None):
-    """
-    Given target model computes accuracy on perturbed data
-    """
-    total_correct = 0
-    total_samples = len(loader_test.dataset)
-
     # For black-box
     if oracle is not None:
         total_samples -= param['hold_out_size']
 
     for t, (X, y) in enumerate(loader_test):
         y_pred = pred_batch(X, model)
-        X_adv = adversary.perturb_batch(X.numpy(), y_pred)
+        X_adv = adversary.perturb(X.numpy(), y_pred)
         X_adv = torch.from_numpy(X_adv)
 
         if oracle is not None:

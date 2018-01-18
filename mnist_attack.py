@@ -46,13 +46,10 @@ test(net, loader_test)
 
 
 # Adversarial attack
-#adversary = FGSMAttack(net, param['epsilon'])
-adversary = LinfPGDAttack(net, random_start=False)
+adversary = FGSMAttack(net, param['epsilon'])
+# adversary = LinfPGDAttack(net, random_start=False)
+
 
 t0 = time()
 attack_over_test_data(net, adversary, param, loader_test)
-print('{}s eclipsed.'.format(time()-t0))
-print('')
-t0 = time()
-attack_over_test_data_batch(net, adversary, param, loader_test)
 print('{}s eclipsed.'.format(time()-t0))
