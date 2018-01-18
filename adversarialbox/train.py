@@ -55,9 +55,10 @@ def FGSM_train_rnd(X, y, model, criterion, fgsm_adversary, epsilon_max=0.3):
     # truncated Gaussian
     m = X.size()[0] # mini-batch size
     mean, std = 0., epsilon_max/2
-    epsilons = np.abs(truncated_normal(mean, std, m))
+    epsilons = np.abs(truncated_normal(mean, std, m))[:, np.newaxis, \
+        np.newaxis, np.newaxis]
 
-    X_adv = adversary.perturb(X.numpy(), y, epsilons)
+    X_adv = fgsm_adversary.perturb(X.numpy(), y, epsilons)
 
     return torch.from_numpy(X_adv)
 

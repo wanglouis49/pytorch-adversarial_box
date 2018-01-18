@@ -11,7 +11,7 @@ import torch.nn.functional as F
 
 from adversarialbox.attacks import FGSMAttack, LinfPGDAttack
 from adversarialbox.utils import to_var, pred_batch, test, \
-    attack_over_test_data, attack_over_test_data_batch
+    attack_over_test_data
 
 from models import LeNet5
 
@@ -19,7 +19,7 @@ from models import LeNet5
 # Hyper-parameters
 param = {
     'test_batch_size': 100,
-    'epsilon': 0.1,
+    'epsilon': 0.3,
 }
 
 

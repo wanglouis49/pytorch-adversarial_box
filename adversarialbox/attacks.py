@@ -25,7 +25,7 @@ class FGSMAttack(object):
         counterparts with an attack length of epsilon.
         """
         # Providing epsilons in batch
-        if epsilon is not None:
+        if epsilons is not None:
             self.epsilon = epsilons
 
         X = np.copy(X_nat)
@@ -38,8 +38,7 @@ class FGSMAttack(object):
         loss.backward()
         grad_sign = X_var.grad.data.cpu().sign().numpy()
 
-        import pdb; pdb.set_trace()
-        X += self.epsilon * grad_sign ###
+        X += self.epsilon * grad_sign
         X = np.clip(X, 0, 1)
 
         return X

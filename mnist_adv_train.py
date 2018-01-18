@@ -10,7 +10,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 
 from adversarialbox.attacks import FGSMAttack, LinfPGDAttack
-from adversarialbox.train import adv_train
+from adversarialbox.train import adv_train, FGSM_train_rnd
 from adversarialbox.utils import to_var, pred_batch, test
 
 from models import LeNet5
@@ -23,6 +23,7 @@ param = {
     'num_epochs': 15,
     'delay': 10,
     'learning_rate': 1e-3,
+    'weight_decay': 5e-4,
 }
 
 
@@ -52,7 +53,8 @@ adversary = FGSMAttack(epsilon=0.3)
 
 # Train the model
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.RMSprop(net.parameters(), lr=param['learning_rate'])
+optimizer = torch.optim.RMSprop(net.parameters(), lr=param['learning_rate'],
+    weight_decay=param['weight_decay'])
 
 for epoch in range(param['num_epochs']):
 
@@ -67,7 +69,7 @@ for epoch in range(param['num_epochs']):
         if epoch+1 > param['delay']:
             # use predicted label to prevent label leaking
             y_pred = pred_batch(x, net)
-            x_adv = adv_train(x, y_pred, net, criterion, adversary)
+            x_adv = FGSM_train_rnd(x, y_pred, net, criterion, adversary)
             x_adv_var = to_var(x_adv)
             loss_adv = criterion(net(x_adv_var), y_var)
             loss = (loss + loss_adv) / 2

@@ -94,7 +94,7 @@ def attack_over_test_data(model, adversary, param, loader_test, oracle=None):
 
     acc = total_correct/total_samples
 
-    print('Got %d/%d correct (%.4f%%) on the perturbed data' 
+    print('Got %d/%d correct (%.2f%%) on the perturbed data' 
         % (total_correct, total_samples, 100 * acc))
 
     return acc
