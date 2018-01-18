@@ -48,8 +48,8 @@ if torch.cuda.is_available():
 net.train()
 
 # Adversarial training setup
-adversary = FGSMAttack(epsilon=0.3)
-#adversary = LinfPGDAttack()
+#adversary = FGSMAttack(epsilon=0.3)
+adversary = LinfPGDAttack()
 
 # Train the model
 criterion = nn.CrossEntropyLoss()
@@ -69,7 +69,7 @@ for epoch in range(param['num_epochs']):
         if epoch+1 > param['delay']:
             # use predicted label to prevent label leaking
             y_pred = pred_batch(x, net)
-            x_adv = FGSM_train_rnd(x, y_pred, net, criterion, adversary)
+            x_adv = adv_train(x, y_pred, net, criterion, adversary)
             x_adv_var = to_var(x_adv)
             loss_adv = criterion(net(x_adv_var), y_var)
             loss = (loss + loss_adv) / 2

@@ -60,7 +60,7 @@ class LinfPGDAttack(object):
         self.rand = random_start
         self.loss_fn = nn.CrossEntropyLoss()
 
-    def perturb_batch(self, X_nat, y):
+    def perturb(self, X_nat, y):
         """
         Given examples (X_nat, y), returns adversarial
         examples within epsilon of X_nat in l_infinity norm.
