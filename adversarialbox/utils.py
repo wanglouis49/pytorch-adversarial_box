@@ -102,6 +102,38 @@ def attack_over_test_data(model, adversary, param, loader_test, oracle=None):
     return acc
 
 
+def attack_over_test_data_batch(model, adversary, param, loader_test, 
+    oracle=None):
+    """
+    Given target model computes accuracy on perturbed data
+    """
+    total_correct = 0
+    total_samples = len(loader_test.dataset)
+
+    # For black-box
+    if oracle is not None:
+        total_samples -= param['hold_out_size']
+
+    for t, (X, y) in enumerate(loader_test):
+        y_pred = pred_batch(X, model)
+        X_adv = adversary.perturb_batch(X.numpy(), y_pred)
+        X_adv = torch.from_numpy(X_adv)
+
+        if oracle is not None:
+            y_pred_adv = pred_batch(X_adv, oracle)
+        else:
+            y_pred_adv = pred_batch(X_adv, model)
+        
+        total_correct += (y_pred_adv.numpy() == y.numpy()).sum()
+
+    acc = total_correct/total_samples
+
+    print('Got %d/%d correct (%.2f%%) on the perturbed data' 
+        % (total_correct, total_samples, 100 * acc))
+
+    return acc
+
+
 def batch_indices(batch_nb, data_length, batch_size):
     """
     This helper function computes a batch start and end index

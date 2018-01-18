@@ -39,6 +39,26 @@ class FGSMAttack(object):
 
         return x
 
+    def perturb_batch(self, X_nat, y):
+        """
+        Given examples (X_nat, y), returns their adversarial
+        counterparts with an attack length of epsilon.
+        """
+        X = np.copy(X_nat)
+
+        X_var = to_var(torch.from_numpy(X), requires_grad=True)
+        y_var = to_var(torch.LongTensor(y))
+
+        scores = self.model(X_var)
+        loss = self.loss_fn(scores, y_var)
+        loss.backward()
+        grad_sign = X_var.grad.data.cpu().sign().numpy()
+
+        X += self.epsilon * grad_sign
+        X = np.clip(X, 0, 1)
+
+        return X
+
 
 class LinfPGDAttack(object):
     def __init__(self, model=None, epsilon=0.3, k=40, a=0.01, 

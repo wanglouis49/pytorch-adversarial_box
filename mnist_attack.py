@@ -1,7 +1,7 @@
 """
 Adversarial attacks on LeNet5
 """
-
+from time import time
 import torch
 import torch.nn as nn
 import torchvision.datasets as datasets
@@ -49,5 +49,10 @@ test(net, loader_test)
 adversary = FGSMAttack(net, param['epsilon'])
 #adversary = LinfPGDAttack(net)
 
+t0 = time()
 attack_over_test_data(net, adversary, param, loader_test)
-
+print('{}s eclipsed.'.format(time()-t0))
+print('')
+t0 = time()
+attack_over_test_data(net, adversary, param, loader_test)
+print('{}s eclipsed.'.format(time()-t0))
